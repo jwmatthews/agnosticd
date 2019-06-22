@@ -106,12 +106,24 @@
     - clone_openshift_ansible|d(false)|bool
     - osrelease is version_compare('3.9', '>=')
 
-- name: run openshift-ansible deploy_cluster.yml (3.9 and later)
-  shell: "ansible-playbook -i /etc/ansible/hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml"
-  register: openshift_install_log
-  tags:
-    - openshift_installer
-  ignore_errors: true
+- block:
+  - name: run openshift-ansible deploy_cluster.yml (3.9 and later)
+    shell: "ansible-playbook -i /etc/ansible/hosts /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml"
+    async: 7200
+    poll: 0
+    register: openshift_install_log
+    tags:
+      - openshift_installer
+    ignore_errors: true
+    
+  - name: "Check OA {{ osrelease }} deployment status"
+    async_status:
+      jid: "{{ openshift_install_log.ansible_job_id }}"
+    register: deploy
+    until: deploy.finished
+    retries: 150
+    delay: 60
+
   when:
     - not clone_openshift_ansible|d(false)|bool
     - osrelease is version_compare('3.9', '>=')
