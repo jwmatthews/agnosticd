@@ -120,10 +120,22 @@
             src: "{{ install_config_template_path }}"
             dest: /home/{{ ansible_user }}/{{ cluster_name }}/install-config.yaml
 
-        - name: Run the installer
-          tags:
-          - run_installer
-          command: openshift-install create cluster --dir=/home/{{ ansible_user }}/{{ cluster_name }}
+        - block:
+          - name: Run the installer
+            tags:
+            - run_installer
+            command: openshift-install create cluster --dir=/home/{{ ansible_user }}/{{ cluster_name }}
+            async: 7200
+            poll: 0
+            register: run_installer_log
+
+          - name: "Checking for openshift-install create cluster status"
+            async_status:
+              jid: "{{ run_installer_log.ansible_job_id }}"
+            register: deploy
+            until: deploy.finished
+            retries: 150
+            delay: 60
 
         - name: Fetch kube config
           fetch:
