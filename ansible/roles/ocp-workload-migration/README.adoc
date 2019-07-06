@@ -1,8 +1,8 @@
-= Red Hat Cluster Migration Workload
+= Cluster Application Migration Tool Workload
 
 == Overview
 
-This is a workload for Red Hat Cluster Migration Tool. It migrates applications from one OCP cluster to another.
+This is a workload for Cluster Application Migration Tool. It migrates applications from one OCP cluster to another.
 
 It includes migration operator and custom resources required to run the migration in CLI mode.
 
